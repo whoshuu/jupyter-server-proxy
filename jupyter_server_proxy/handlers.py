@@ -21,6 +21,11 @@ from .websocket import WebSocketHandlerMixin, pingable_ws_connect
 from simpervisor import SupervisedProcess
 
 
+def file_log(message):
+    with open("/tmp/debug.log", "a"): as f:
+        f.write(message + "\n")
+
+
 class AddSlashHandler(JupyterHandler):
     """Add trailing slash to URLs that need them."""
     @web.authenticated
@@ -197,8 +202,8 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
             {base_url}/proxy/absolute/{port([0-9]+)}/{proxied_path}
             {base_url}/{proxy_base}/{proxied_path}
         '''
-        self.log.debug(f"calling proxy {self}, {host}, {port}, {proxied_path}")
-        self.log.debug(f"request headers: {self.request.headers}")
+        file_log(f"calling proxy {self}, {host}, {port}, {proxied_path}")
+        file_log(f"request headers: {self.request.headers}")
 
         if not self._check_host_allowlist(host):
             self.set_status(403)

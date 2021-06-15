@@ -17,6 +17,11 @@ from jupyter_server.base.handlers import JupyterHandler, utcnow
 from jupyter_server.utils import ensure_async
 
 
+def file_log(message):
+    with open("/tmp/debug.log", "a"): as f:
+        f.write(message + "\n")
+
+
 class PingableWSClientConnection(websocket.WebSocketClientConnection):
     """A WebSocketClientConnection with an on_ping callback."""
     def __init__(self, **kwargs):
@@ -87,7 +92,7 @@ class WebSocketHandlerMixin(websocket.WebSocketHandler):
         nextparent.__init__(self, *args, **kwargs)
 
     async def get(self, *args, **kwargs):
-        self.log.debug(f"ws handler debug: {self}, {args}, {kwargs}")
+        file_log(f"ws handler debug: {self}, {args}, {kwargs}")
         if self.request.headers.get("Upgrade", "").lower() != 'websocket':
             return await self.http_get(*args, **kwargs)
         else:
