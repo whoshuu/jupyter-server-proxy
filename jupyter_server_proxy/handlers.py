@@ -22,7 +22,7 @@ from simpervisor import SupervisedProcess
 
 
 def file_log(message):
-    with open("/tmp/debug.log", "a"): as f:
+    with open("/tmp/debug.log", "a") as f:
         f.write(message + "\n")
 
 

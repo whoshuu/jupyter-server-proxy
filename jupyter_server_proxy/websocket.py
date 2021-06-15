@@ -18,7 +18,7 @@ from jupyter_server.utils import ensure_async
 
 
 def file_log(message):
-    with open("/tmp/debug.log", "a"): as f:
+    with open("/tmp/debug.log", "a") as f:
         f.write(message + "\n")
 
 
