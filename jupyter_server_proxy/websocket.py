@@ -17,22 +17,22 @@ from jupyter_server.base.handlers import JupyterHandler, utcnow
 from jupyter_server.utils import ensure_async
 
 
-def file_log(message):
+def file_log(message, extra="global"):
     with open("/tmp/debug.log", "a") as f:
-        f.write("JSP/websocket.py" + message + "\n")
+        f.write("JSP/websocket.py " + extra + " " + message + "\n")
 
 
 class PingableWSClientConnection(websocket.WebSocketClientConnection):
     """A WebSocketClientConnection with an on_ping callback."""
     def __init__(self, **kwargs):
-        file_log(f"post")
+        file_log(f"post", self.__class__.__name__)
         if 'on_ping_callback' in kwargs:
             self._on_ping_callback = kwargs['on_ping_callback']
             del(kwargs['on_ping_callback'])
         super().__init__(**kwargs)
 
     def on_ping(self, data):
-        file_log(f"on_ping")
+        file_log(f"on_ping", self.__class__.__name__)
         if self._on_ping_callback:
             self._on_ping_callback(data)
 
@@ -69,7 +69,7 @@ def pingable_ws_connect(request=None,on_message_callback=None,
 # from https://stackoverflow.com/questions/38663666/how-can-i-serve-a-http-page-and-a-websocket-on-the-same-url-in-tornado
 class WebSocketHandlerMixin(websocket.WebSocketHandler):
     def __init__(self, *args, **kwargs):
-        file_log(f"__init__")
+        file_log(f"__init__", self.__class__.__name__)
         super().__init__(*args, **kwargs)
         # since my parent doesn't keep calling the super() constructor,
         # I need to do it myself
@@ -95,12 +95,12 @@ class WebSocketHandlerMixin(websocket.WebSocketHandler):
         nextparent.__init__(self, *args, **kwargs)
 
     async def get(self, *args, **kwargs):
-        file_log(f"ws handler debug: {self}, {args}, {kwargs}, {self.request.headers}")
+        file_log(f"ws handler debug: {self}, {args}, {kwargs}, {self.request.headers}", self.__class__.__name__)
         if self.request.headers.get("Upgrade", "").lower() != 'websocket':
-            file_log(f"calling http_get")
+            file_log(f"calling http_get", self.__class__.__name__)
             return await self.http_get(*args, **kwargs)
         else:
-            file_log(f"calling super().get()")
+            file_log(f"calling super().get()", self.__class__.__name__)
             await ensure_async(super().get(*args, **kwargs))
 
 

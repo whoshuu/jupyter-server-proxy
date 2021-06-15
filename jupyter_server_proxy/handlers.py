@@ -21,16 +21,16 @@ from .websocket import WebSocketHandlerMixin, pingable_ws_connect
 from simpervisor import SupervisedProcess
 
 
-def file_log(message):
+def file_log(message, extra="global"):
     with open("/tmp/debug.log", "a") as f:
-        f.write("JSP/handlers.py" + message + "\n")
+        f.write("JSP/handlers.py " + extra + " " + message + "\n")
 
 
 class AddSlashHandler(JupyterHandler):
     """Add trailing slash to URLs that need them."""
     @web.authenticated
     def get(self, *args):
-        file_log(f"get")
+        file_log(f"get", self.__class__.__name__)
         src = urlparse(self.request.uri)
         dest = src._replace(path=src.path + '/')
         self.redirect(urlunparse(dest))
@@ -47,7 +47,7 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
     and options.
     """
     def __init__(self, *args, **kwargs):
-        file_log(f"__init__")
+        file_log(f"__init__", self.__class__.__name__)
         self.proxy_base = ''
         self.absolute_url = kwargs.pop('absolute_url', False)
         self.host_allowlist = kwargs.pop('host_allowlist', ['localhost', '127.0.0.1'])
@@ -58,40 +58,40 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
     # is passed to WebSocketHandlerMixin and then to WebSocketHandler.
 
     async def open(self, port, proxied_path):
-        file_log(f"open")
+        file_log(f"open", self.__class__.__name__)
         raise NotImplementedError('Subclasses of ProxyHandler should implement open')
 
     async def http_get(self, host, port, proxy_path=''):
-        file_log(f"http_get")
+        file_log(f"http_get", self.__class__.__name__)
         '''Our non-websocket GET.'''
         raise NotImplementedError('Subclasses of ProxyHandler should implement http_get')
 
     def post(self, host, port, proxy_path=''):
-        file_log(f"post")
+        file_log(f"post", self.__class__.__name__)
         raise NotImplementedError('Subclasses of ProxyHandler should implement this post')
 
     def put(self, port, proxy_path=''):
-        file_log(f"put")
+        file_log(f"put", self.__class__.__name__)
         raise NotImplementedError('Subclasses of ProxyHandler should implement this put')
 
     def delete(self, host, port, proxy_path=''):
-        file_log(f"delete")
+        file_log(f"delete", self.__class__.__name__)
         raise NotImplementedError('Subclasses of ProxyHandler should implement delete')
 
     def head(self, host, port, proxy_path=''):
-        file_log(f"head")
+        file_log(f"head", self.__class__.__name__)
         raise NotImplementedError('Subclasses of ProxyHandler should implement head')
 
     def patch(self, host, port, proxy_path=''):
-        file_log(f"patch")
+        file_log(f"patch", self.__class__.__name__)
         raise NotImplementedError('Subclasses of ProxyHandler should implement patch')
 
     def options(self, host, port, proxy_path=''):
-        file_log(f"options")
+        file_log(f"options", self.__class__.__name__)
         raise NotImplementedError('Subclasses of ProxyHandler should implement options')
 
     def on_message(self, message):
-        file_log(f"on_message")
+        file_log(f"on_message", self.__class__.__name__)
         """
         Called when we receive a message from our client.
 
@@ -102,7 +102,7 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
             self.ws.write_message(message, binary=isinstance(message, bytes))
 
     def on_ping(self, data):
-        file_log(f"on_ping")
+        file_log(f"on_ping", self.__class__.__name__)
         """
         Called when the client pings our websocket connection.
 
@@ -114,14 +114,14 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
             self.ws.protocol.write_ping(data)
 
     def on_pong(self, data):
-        file_log(f"on_pong")
+        file_log(f"on_pong", self.__class__.__name__)
         """
         Called when we receive a ping back.
         """
         self.log.debug('jupyter_server_proxy: on_pong: {}'.format(data))
 
     def on_close(self):
-        file_log(f"on_close")
+        file_log(f"on_close", self.__class__.__name__)
         """
         Called when the client closes our websocket connection.
 
@@ -131,7 +131,7 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
             self.ws.close()
 
     def _record_activity(self):
-        file_log(f"_record_activity")
+        file_log(f"_record_activity", self.__class__.__name__)
         """Record proxied activity as API activity
 
         avoids proxied traffic being ignored by the notebook's
@@ -140,7 +140,7 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
         self.settings['api_last_activity'] = utcnow()
 
     def _get_context_path(self, host, port):
-        file_log(f"_get_context_path")
+        file_log(f"_get_context_path", self.__class__.__name__)
         """
         Some applications need to know where they are being proxied from.
         This is either:
@@ -159,7 +159,7 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
             return url_path_join(self.base_url, 'proxy', host_and_port)
 
     def get_client_uri(self, protocol, host, port, proxied_path):
-        file_log(f"get_client_uri")
+        file_log(f"get_client_uri", self.__class__.__name__)
         context_path = self._get_context_path(host, port)
         if self.absolute_url:
             client_path = url_path_join(context_path, proxied_path)
@@ -187,7 +187,7 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
         return client_uri
 
     def _build_proxy_request(self, host, port, proxied_path, body):
-        file_log(f"_build_proxy_request")
+        file_log(f"_build_proxy_request", self.__class__.__name__)
 
         headers = self.proxy_request_headers()
 
@@ -207,7 +207,7 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
         return req
 
     def _check_host_allowlist(self, host):
-        file_log(f"_check_host_allowlist")
+        file_log(f"_check_host_allowlist", self.__class__.__name__)
         if callable(self.host_allowlist):
             return self.host_allowlist(self, host)
         else:
@@ -215,15 +215,15 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
 
     @web.authenticated
     async def proxy(self, host, port, proxied_path):
-        file_log(f"proxy")
+        file_log(f"proxy", self.__class__.__name__)
         '''
         This serverextension handles:
             {base_url}/proxy/{port([0-9]+)}/{proxied_path}
             {base_url}/proxy/absolute/{port([0-9]+)}/{proxied_path}
             {base_url}/{proxy_base}/{proxied_path}
         '''
-        file_log(f"calling proxy {self}, {host}, {port}, {proxied_path}")
-        file_log(f"request headers: {self.request.headers}")
+        file_log(f"calling proxy {self}, {host}, {port}, {proxied_path}", self.__class__.__name__)
+        file_log(f"request headers: {self.request.headers}", self.__class__.__name__)
 
         if not self._check_host_allowlist(host):
             self.set_status(403)
@@ -291,7 +291,7 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
                 self.write(response.body)
 
     async def proxy_open(self, host, port, proxied_path=''):
-        file_log(f"proxy_open")
+        file_log(f"proxy_open", self.__class__.__name__)
         """
         Called when a client opens a websocket connection.
 
@@ -356,19 +356,19 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
 
 
     def proxy_request_headers(self):
-        file_log(f"proxy_request_headers")
+        file_log(f"proxy_request_headers", self.__class__.__name__)
         '''A dictionary of headers to be used when constructing
         a tornado.httpclient.HTTPRequest instance for the proxy request.'''
         return self.request.headers.copy()
 
     def proxy_request_options(self):
-        file_log(f"proxy_request_options")
+        file_log(f"proxy_request_options", self.__class__.__name__)
         '''A dictionary of options to be used when constructing
         a tornado.httpclient.HTTPRequest instance for the proxy request.'''
         return dict(follow_redirects=False, connect_timeout=250.0, request_timeout=300.0)
 
     def check_xsrf_cookie(self):
-        file_log(f"check_xsrf_cookie")
+        file_log(f"check_xsrf_cookie", self.__class__.__name__)
         '''
         http://www.tornadoweb.org/en/stable/guide/security.html
 
@@ -377,7 +377,7 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
         pass
 
     def select_subprotocol(self, subprotocols):
-        file_log(f"select_subprotocol")
+        file_log(f"select_subprotocol", self.__class__.__name__)
         '''Select a single Sec-WebSocket-Protocol during handshake.'''
         self.subprotocols = subprotocols
         if isinstance(subprotocols, list) and subprotocols:
@@ -393,39 +393,39 @@ class LocalProxyHandler(ProxyHandler):
     but specific to 'localhost'.
     """
     async def http_get(self, port, proxied_path):
-        file_log(f"http_get")
+        file_log(f"http_get", self.__class__.__name__)
         return await self.proxy(port, proxied_path)
 
     async def open(self, port, proxied_path):
-        file_log(f"open")
+        file_log(f"open", self.__class__.__name__)
         return await self.proxy_open('localhost', port, proxied_path)
 
     def post(self, port, proxied_path):
-        file_log(f"post")
+        file_log(f"post", self.__class__.__name__)
         return self.proxy(port, proxied_path)
 
     def put(self, port, proxied_path):
-        file_log(f"put")
+        file_log(f"put", self.__class__.__name__)
         return self.proxy(port, proxied_path)
 
     def delete(self, port, proxied_path):
-        file_log(f"delete")
+        file_log(f"delete", self.__class__.__name__)
         return self.proxy(port, proxied_path)
 
     def head(self, port, proxied_path):
-        file_log(f"head")
+        file_log(f"head", self.__class__.__name__)
         return self.proxy(port, proxied_path)
 
     def patch(self, port, proxied_path):
-        file_log(f"patch")
+        file_log(f"patch", self.__class__.__name__)
         return self.proxy(port, proxied_path)
 
     def options(self, port, proxied_path):
-        file_log(f"options")
+        file_log(f"options", self.__class__.__name__)
         return self.proxy(port, proxied_path)
 
     def proxy(self, port, proxied_path):
-        file_log(f"proxy")
+        file_log(f"proxy", self.__class__.__name__)
         return super().proxy('localhost', port, proxied_path)
 
 
@@ -436,39 +436,39 @@ class RemoteProxyHandler(ProxyHandler):
     """
 
     async def http_get(self, host, port, proxied_path):
-        file_log(f"http_get")
+        file_log(f"http_get", self.__class__.__name__)
         return await self.proxy(host, port, proxied_path)
 
     def post(self, host, port, proxied_path):
-        file_log(f"post")
+        file_log(f"post", self.__class__.__name__)
         return self.proxy(host, port, proxied_path)
 
     def put(self, host, port, proxied_path):
-        file_log(f"put")
+        file_log(f"put", self.__class__.__name__)
         return self.proxy(host, port, proxied_path)
 
     def delete(self, host, port, proxied_path):
-        file_log(f"delete")
+        file_log(f"delete", self.__class__.__name__)
         return self.proxy(host, port, proxied_path)
 
     def head(self, host, port, proxied_path):
-        file_log(f"head")
+        file_log(f"head", self.__class__.__name__)
         return self.proxy(host, port, proxied_path)
 
     def patch(self, host, port, proxied_path):
-        file_log(f"patch")
+        file_log(f"patch", self.__class__.__name__)
         return self.proxy(host, port, proxied_path)
 
     def options(self, host, port, proxied_path):
-        file_log(f"options")
+        file_log(f"options", self.__class__.__name__)
         return self.proxy(host, port, proxied_path)
 
     async def open(self, host, port, proxied_path):
-        file_log(f"open")
+        file_log(f"open", self.__class__.__name__)
         return await self.proxy_open(host, port, proxied_path)
 
     def proxy(self, host, port, proxied_path):
-        file_log(f"proxy")
+        file_log(f"proxy", self.__class__.__name__)
         return super().proxy(host, port, proxied_path)
 
 
@@ -477,13 +477,13 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
     '''Manage a given process and requests to it '''
 
     def __init__(self, *args, **kwargs):
-        file_log(f"__init__")
+        file_log(f"__init__", self.__class__.__name__)
         self.requested_port = 0
         self.mappath = {}
         super().__init__(*args, **kwargs)
 
     def initialize(self, state):
-        file_log(f"initialize")
+        file_log(f"initialize", self.__class__.__name__)
         self.state = state
         if 'proc_lock' not in state:
             state['proc_lock'] = Lock()
@@ -492,7 +492,7 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
 
     @property
     def port(self):
-        file_log(f"port")
+        file_log(f"port", self.__class__.__name__)
         """
         Allocate either the requested port or a random empty port for use by
         application
@@ -505,7 +505,7 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
         return self.state['port']
 
     def get_cwd(self):
-        file_log(f"get_cwd")
+        file_log(f"get_cwd", self.__class__.__name__)
         """Get the current working directory for our process
 
         Override in subclass to launch the process in a directory
@@ -514,20 +514,20 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
         return os.getcwd()
 
     def get_env(self):
-        file_log(f"get_env")
+        file_log(f"get_env", self.__class__.__name__)
         '''Set up extra environment variables for process. Typically
            overridden in subclasses.'''
         return {}
 
     def get_timeout(self):
-        file_log(f"get_timeout")
+        file_log(f"get_timeout", self.__class__.__name__)
         """
         Return timeout (in s) to wait before giving up on process readiness
         """
         return 5
 
     async def _http_ready_func(self, p):
-        file_log(f"_http_ready_func")
+        file_log(f"_http_ready_func", self.__class__.__name__)
         url = 'http://localhost:{}'.format(self.port)
         async with aiohttp.ClientSession() as session:
             try:
@@ -541,7 +541,7 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
                 return False
 
     async def ensure_process(self):
-        file_log(f"ensure_process")
+        file_log(f"ensure_process", self.__class__.__name__)
         """
         Start the process
         """
@@ -580,7 +580,7 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
 
     @web.authenticated
     async def proxy(self, port, path):
-        file_log(f"proxy")
+        file_log(f"proxy", self.__class__.__name__)
         if not path.startswith('/'):
             path = '/' + path
         if self.mappath:
@@ -595,36 +595,36 @@ class SuperviseAndProxyHandler(LocalProxyHandler):
 
 
     async def http_get(self, path):
-        file_log(f"http_get")
+        file_log(f"http_get", self.__class__.__name__)
         return await ensure_async(self.proxy(self.port, path))
 
     async def open(self, path):
-        file_log(f"open")
+        file_log(f"open", self.__class__.__name__)
         await self.ensure_process()
         return await super().open(self.port, path)
 
     def post(self, path):
-        file_log(f"post")
+        file_log(f"post", self.__class__.__name__)
         return self.proxy(self.port, path)
 
     def put(self, path):
-        file_log(f"put")
+        file_log(f"put", self.__class__.__name__)
         return self.proxy(self.port, path)
 
     def delete(self, path):
-        file_log(f"delete")
+        file_log(f"delete", self.__class__.__name__)
         return self.proxy(self.port, path)
 
     def head(self, path):
-        file_log(f"head")
+        file_log(f"head", self.__class__.__name__)
         return self.proxy(self.port, path)
 
     def patch(self, path):
-        file_log(f"patch")
+        file_log(f"patch", self.__class__.__name__)
         return self.proxy(self.port, path)
 
     def options(self, path):
-        file_log(f"options")
+        file_log(f"options", self.__class__.__name__)
         return self.proxy(self.port, path)
 
 
