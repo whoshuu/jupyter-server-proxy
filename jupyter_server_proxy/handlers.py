@@ -197,6 +197,8 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
             {base_url}/proxy/absolute/{port([0-9]+)}/{proxied_path}
             {base_url}/{proxy_base}/{proxied_path}
         '''
+        self.log.debug(f"calling proxy {self}, {host}, {port}, {proxied_path}")
+        self.log.debug(f"request headers: {self.request.headers}")
 
         if not self._check_host_allowlist(host):
             self.set_status(403)

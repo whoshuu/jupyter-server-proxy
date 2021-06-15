@@ -87,6 +87,7 @@ class WebSocketHandlerMixin(websocket.WebSocketHandler):
         nextparent.__init__(self, *args, **kwargs)
 
     async def get(self, *args, **kwargs):
+        self.log.debug(f"ws handler debug: {self}, {args}, {kwargs}")
         if self.request.headers.get("Upgrade", "").lower() != 'websocket':
             return await self.http_get(*args, **kwargs)
         else:
