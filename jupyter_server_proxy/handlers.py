@@ -159,7 +159,6 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
             return url_path_join(self.base_url, 'proxy', host_and_port)
 
     def get_client_uri(self, protocol, host, port, proxied_path):
-        file_log(f"get_client_uri", self.__class__.__name__)
         context_path = self._get_context_path(host, port)
         if self.absolute_url:
             client_path = url_path_join(context_path, proxied_path)
@@ -184,14 +183,15 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
         if self.request.query:
             client_uri += '?' + self.request.query
 
+        file_log(f"get_client_uri {client_uri}", self.__class__.__name__)
         return client_uri
 
     def _build_proxy_request(self, host, port, proxied_path, body):
-        file_log(f"_build_proxy_request", self.__class__.__name__)
 
         headers = self.proxy_request_headers()
 
         client_uri = self.get_client_uri('http', host, port, proxied_path)
+        file_log(f"_build_proxy_request {client_uri}", self.__class__.__name__)
         # Some applications check X-Forwarded-Context and X-ProxyContextPath
         # headers to see if and where they are being proxied from.
         if not self.absolute_url:
