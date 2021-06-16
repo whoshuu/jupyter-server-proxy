@@ -47,12 +47,12 @@ class ProxyHandler(WebSocketHandlerMixin, JupyterHandler):
     and options.
     """
     def __init__(self, *args, **kwargs):
-        file_log(f"__init__ {self.request.path}", self.__class__.__name__)
         self.proxy_base = ''
         self.absolute_url = kwargs.pop('absolute_url', False)
         self.host_allowlist = kwargs.pop('host_allowlist', ['localhost', '127.0.0.1'])
         self.subprotocols = None
         super().__init__(*args, **kwargs)
+        file_log(f"__init__ {self.request.path}", self.__class__.__name__)
 
     # Support all the methods that tornado does by default except for GET which
     # is passed to WebSocketHandlerMixin and then to WebSocketHandler.
